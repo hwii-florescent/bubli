@@ -28,3 +28,9 @@ Content-Type: application/json
 
 ### Get activities for a user
 GET http://127.0.0.1:8000/users/huyngu@gmail.com/activities/
+
+### Get coins of a user
+GET http://127.0.0.1:8000/users/test5@gmail.com/coins/
+
+### Update number of coin for a user
+PUT http://127.0.0.1:8000/users/test5@gmail.com/coins/?coins=100
