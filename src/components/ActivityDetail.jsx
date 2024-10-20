@@ -51,16 +51,19 @@ const ActivityDetail = () => {
       <p className="mb-2">
         <strong>Mood Rating:</strong> {activity.mood_rating}
       </p>
+      {activity.songId && (
         <div className="mt-4">
-          <iframe
-            src={`https://open.spotify.com/embed/track/${activity.song}`}
-            width="300"
-            height="80"
-            frameBorder="0"
-            allow="encrypted-media"
-            title="Spotify Player"
-          ></iframe>
-        </div>
+        <iframe
+          src={`https://open.spotify.com/embed/track/${activity.songId}`}
+          width="300"
+          height="80"
+          frameBorder="0"
+          allow="encrypted-media"
+          title="Spotify Player"
+        ></iframe>
+      </div>
+      )}
+        
     </div>
   );
 };

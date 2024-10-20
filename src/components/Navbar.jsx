@@ -23,7 +23,7 @@ const Navbar = () => {
     });
 
     return () => unsubscribe(); 
-  }, [auth]); 
+  }, [user]); 
 
 
   const getCurrentSong = async (userEmail) => {
@@ -34,8 +34,8 @@ const Navbar = () => {
       }
       const ssong = await response.json();
       console.log(ssong);
-      setSong(ssong[0].song);
-      return ssong[0].song;
+      setSong(ssong[0].songId);
+      return ssong[0].songId;
     } catch (error) {
       console.error("error", error);
       return 0;
@@ -64,6 +64,7 @@ const Navbar = () => {
       await signOut(auth);
       setUser(null);
       setCoins(0); 
+      setSong('');
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -76,7 +77,8 @@ const Navbar = () => {
         <NavLink to='/' className="text-black hover:text-blue-600 text-3xl">
           <AiOutlineHome />
         </NavLink>
-        <div className="mt-4">
+        {ssong && (
+          <div className="mt-4">
           <iframe
             src={`https://open.spotify.com/embed/track/${ssong}`}
             width="300"
@@ -86,6 +88,8 @@ const Navbar = () => {
             title="Spotify Player"
           ></iframe>
         </div>
+        )}
+        
         {/* Coin Tracker Icon */}
         <div className="flex items-center gap-2 text-xl text-white">
           <FaCoins className="text-yellow-500" />

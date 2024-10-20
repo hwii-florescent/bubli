@@ -27,7 +27,7 @@ export const SpotifySongSuggestion = async (valence, tempo, energy) => {
   const params = {
     limit: 1,
     market: "US",
-    seed_genres: "lofi", // You can make this dynamic if needed
+    seed_genres: "pop", // You can make this dynamic if needed
     min_valence: valence - 0.05,
     max_valence: valence + 0.05,
     min_tempo: tempo,
