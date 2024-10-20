@@ -260,7 +260,7 @@ async def get_user_activities(email: str):
 
     if not user_activity:
         raise HTTPException(status_code=404, detail="User activities not found")
-    return activity_helper(user_activity)
+    return user_activity["activities"]
 
 # Get activity by date
 @app.get("/users/{email}/activities/{date}")

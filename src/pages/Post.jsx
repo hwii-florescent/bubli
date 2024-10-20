@@ -58,6 +58,10 @@ const Post = () => {
       return;
     }
 
+    const jsonString = llamaResponse.replace(/([a-zA-Z0-9_]+):/g, '"$1":').replace(/'/g, '"');
+    const llamaResponseJSON = JSON.parse(jsonString);
+    console.log(llamaResponseJSON)
+
     const apiUrl = `http://127.0.0.1:8000/users/${user.email}/activities/`;
 
     const activityData = {
@@ -66,7 +70,7 @@ const Post = () => {
         prompt: form.prompt,
         answer: form.content,
         mood_answer: inputSentence || "", 
-        mood_rating: parseInt(llamaResponse?.valence * 10) || 0, 
+        mood_rating: parseInt(llamaResponseJSON.valence * 10), 
         songId: songSuggestion?.[0]?.id || "", 
       },
     };
@@ -90,7 +94,7 @@ const Post = () => {
         showAlert({
           show: true,
           text: "Failed to submit blog. Please try again.",
-          type: "error",
+          type: "danger",
         });
       }
     } catch (error) {
@@ -98,7 +102,7 @@ const Post = () => {
       showAlert({
         show: true,
         text: "An error occurred. Please try again later.",
-        type: "error",
+        type: "danger",
       });
     } finally {
       setLoading(false);
