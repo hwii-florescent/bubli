@@ -1,41 +1,42 @@
-import React, { useState, useEffect } from "react";
-import { auth } from "../firebase";
-import { signOut } from "firebase/auth";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { queryLlama3 } from "../API call/mood_detect";
 import { SpotifySongSuggestion } from "../Song";
-import Post from "./Post";
+import { Canvas } from "@react-three/fiber";
+import { Suspense } from "react";
+import { Loader } from "../components";
 
-export default function Prompt() {
+const Prompt = () => {
   const navigate = useNavigate();
+  const formRef = useRef();
   const [inputSentence, setInputSentence] = useState("");
   const [llamaResponse, setLlamaResponse] = useState(null);
+  const [songSuggestion, setSongSuggestion] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [songSuggestion, setSongSuggestion] = useState(null);
+  const [currentAnimation, setCurrentAnimation] = useState("idle");
 
-  const handleSubmit = async () => {
+  const handleChange = ({ target: { value } }) => {
+    setInputSentence(value);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
     setError(null);
+    setCurrentAnimation("hit");
 
     try {
       const response = await queryLlama3(inputSentence);
       setLlamaResponse(response);
+      navigate("/post");
+
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+      setCurrentAnimation("idle");
     }
-  };
-
-  const handleLogout = () => {
-    signOut(auth)
-      .then(() => {
-        navigate("/login");
-      })
-      .catch((error) => {
-        console.error("Error logging out:", error);
-      });
   };
 
   useEffect(() => {
@@ -58,67 +59,47 @@ export default function Prompt() {
   }, [llamaResponse]);
 
   return (
-    <>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          padding: 20,
-          marginTop: "80px",  // Added top margin to prevent overlap with the navbar
-        }}
-      >
-        <div style={{ marginBottom: "10px" }}>
-          <input
-            type="text"
-            value={inputSentence}
-            onChange={(e) => setInputSentence(e.target.value)}
-            placeholder="How are you feeling today?"
-            style={{
-              padding: "10px",
-              fontSize: "16px",
-              width: "300px",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-            }}
-          />
-        </div>
+    <section className="relative flex lg:flex-row flex-col max-container">
+      <div className="flex-1 min-w-[50%] flex flex-col">
+        <h1 className="head-text">How are you feeling?</h1>
 
-        <div>
+        <form
+          ref={formRef}
+          onSubmit={handleSubmit}
+          className="w-full flex flex-col gap-7 mt-14"
+        >
+          <label className="text-black-500 font-semibold">
+            Enter your mood or feelings:
+            <input
+              type="text"
+              name="inputSentence"
+              className="input"
+              placeholder="How are you feeling today?"
+              value={inputSentence}
+              onChange={handleChange}
+              onFocus={() => setCurrentAnimation("walk")}
+              onBlur={() => setCurrentAnimation("idle")}
+              required
+            />
+          </label>
+
           <button
-            onClick={handleSubmit}
-            style={{
-              padding: "10px 20px",
-              fontSize: "16px",
-              backgroundColor: "#28a745",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
+            type="submit"
             disabled={loading}
+            className="btn"
+            onFocus={() => setCurrentAnimation("walk")}
+            onBlur={() => setCurrentAnimation("idle")}
           >
             {loading ? "Loading..." : "Submit"}
           </button>
-        </div>
+        </form>
 
-        {error && (
-          <p style={{ color: "red", marginTop: "10px" }}>Error: {error}</p>
-        )}
-
-        {llamaResponse && (
-          <div style={{ marginTop: "20px" }}>
-            <h2>Test Llama 3 suggestion</h2>
-            <pre>{JSON.stringify(llamaResponse, null, 2)}</pre>
-          </div>
-        )}
+        {error && <p className="text-red-500">{error}</p>}
 
         {songSuggestion && (
           <div style={{ marginTop: "20px" }}>
             <h2>Spotify Song Suggestion</h2>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-            >
+            <div>
               <iframe
                 src={`https://open.spotify.com/embed/track/${songSuggestion[0].id}`}
                 width="300"
@@ -130,14 +111,21 @@ export default function Prompt() {
             </div>
           </div>
         )}
-
-        {/* Conditionally render the Post component if llamaResponse is available */}
-        {llamaResponse && (
-          <div style={{ marginTop: "30px", width: "100%" }}>
-            <Post llamaResponse={llamaResponse} />
-          </div>
-        )}
       </div>
-    </>
+
+      <div className="lg:w-1/2 w-full lg:h-auto md:h-[550px] h-[350px]">
+        <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
+          <directionalLight position={[0, 0, 1]} intensity={2.5} />
+          <ambientLight intensity={1} />
+          <pointLight position={[5, 10, 0]} intensity={2} />
+          <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} />
+          <Suspense fallback={<Loader />}>
+            {/* Here you can replace with a model or visual animation of your choice */}
+          </Suspense>
+        </Canvas>
+      </div>
+    </section>
   );
-}
+};
+
+export default Prompt;
