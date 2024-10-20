@@ -32,28 +32,23 @@ const Login = () => {
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
-      
-      // Successfully signed in
+
       const user = userCredential.user;
       console.log("Logged in user:", user);
 
-      // Show success alert only on successful login
       showAlert({
         type: "success",
         message: "Login successful!",
       });
 
-      // Delay navigation to homepage after 1.5 seconds
       setTimeout(() => {
         navigate("/"); 
       }, 1500); 
 
-      // Reset the form after login success
       setForm({ email: "", password: "" });
     } catch (error) {
       console.error("Error logging in:", error);
-      
-      // Show error alert only on failed login
+
       showAlert({
         type: "error",
         message: "Login failed: " + error.message, 
