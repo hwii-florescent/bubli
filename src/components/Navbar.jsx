@@ -7,7 +7,7 @@ import { FaCoins } from "react-icons/fa"; // Coin icon (FaCoins from react-icons
 import { AuthContext } from "../App";
 
 const Navbar = () => {
-  const [user, setUser] = useContext(AuthContext);
+  const {user, setUser} = useContext(AuthContext);
   const [coins, setCoins] = useState(0);  // State to track coins
 
   useEffect(() => {
@@ -44,7 +44,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth); 
+      await signOut(auth);
       setUser(null);
       setCoins(0);  // Reset coins on logout
     } catch (error) {
