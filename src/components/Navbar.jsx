@@ -16,31 +16,27 @@ const Navbar = () => {
       setUser(currentUser);
 
       if (currentUser) {
-        // Assuming you fetch coins from your backend or Firebase
-        fetchCoins(currentUser.uid);
+        getCoinsFromDatabase(user.email)
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  const fetchCoins = async (userId) => {
+  const getCoinsFromDatabase = async (userEmail) => {
     try {
-      // Simulate fetching the coin count from a backend or Firebase
-      const fetchedCoins = await getCoinsFromDatabase(userId); // Replace with actual API call
-      setCoins(fetchedCoins);
+      const response = await fetch(`http://127.0.0.1:8000/users/${userEmail}/coins/`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch coin data.");
+      }
+  
+      const coins = await response.json(); 
+      return coins[0];  
     } catch (error) {
       console.error("Error fetching coins:", error);
+      return 0; 
     }
-  };
-
-  // Mock function to simulate fetching coins from a database
-  const getCoinsFromDatabase = (userId) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(150);  // Return mock coin value (you can replace this with an actual API call)
-      }, 1000);
-    });
   };
 
   const handleLogout = async () => {

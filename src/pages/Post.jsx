@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { useLocation } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
@@ -8,12 +8,15 @@ import { Fox } from "../models";
 import useAlert from "../hooks/useAlert";
 import { Alert, Loader } from "../components";
 
+import { AuthContext } from "../App";
+
 const Post = () => {
   const formRef = useRef();
   const { alert, showAlert, hideAlert } = useAlert();
   const [loading, setLoading] = useState(false);
   const [currentAnimation, setCurrentAnimation] = useState("idle");
-  const [user, setUser] = useState(null); 
+  const {user, setUser} = useContext(AuthContext);
+  const [coins, setCoins] = useState(0);
 
   const location = useLocation();
   const { songSuggestion, generatedPrompt, llamaResponse, inputSentence } = location.state || {};
@@ -43,6 +46,22 @@ const Post = () => {
   const handleFocus = () => setCurrentAnimation("walk");
   const handleBlur = () => setCurrentAnimation("idle");
 
+  const getCoinsFromDatabase = async (userEmail) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/users/${userEmail}/coins/`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch coin data.");
+      }
+  
+      const coins = await response.json(); 
+      return coins[0];  
+    } catch (error) {
+      console.error("Error fetching coins:", error);
+      return 0; 
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -63,6 +82,7 @@ const Post = () => {
     console.log(llamaResponseJSON)
 
     const apiUrl = `http://127.0.0.1:8000/users/${user.email}/activities/`;
+    const coinApiUrl = `http://127.0.0.1:8000/users/${user.email}/coins/`;
 
     const activityData = {
       date: new Date().toISOString().split("T")[0],
@@ -90,6 +110,17 @@ const Post = () => {
           text: "Blog submitted successfully! 🎉",
           type: "success",
         });
+       
+      const currentCoinsData = await getCoinsFromDatabase(user.email); 
+      const updatedCoins = currentCoinsData + 1;
+
+      const coinResponse = await fetch(`${coinApiUrl}?coins=${updatedCoins}`, {
+        method: "PUT",
+      });
+
+      if (coinResponse.ok) {
+        setCoins(updatedCoins); 
+      }
       } else {
         showAlert({
           show: true,
