@@ -2,6 +2,6 @@ fastapi
 pydantic
 motor
 bcrypt
-dotenv
+python-dotenv
 uvicorn
 os
