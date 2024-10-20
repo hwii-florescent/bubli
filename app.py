@@ -44,11 +44,13 @@ class User(BaseModel):
     email: str
     password: str
     username: str = None
+    coins: int
 
 class UserResponse(BaseModel):
     id: str
     email: str
     username: str = None
+    coins: int
 
 class UserUpdate(BaseModel):
     email: Optional[str]
