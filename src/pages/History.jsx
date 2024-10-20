@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App'; // Adjust the path if necessary
 import { format } from 'date-fns'; // For formatting dates
 import axios from 'axios';
+import MoodGraph from '../../MoodGraph';
 
 const History = () => {
   const { user } = useContext(AuthContext);
@@ -65,6 +66,7 @@ const History = () => {
           <p>No activities found.</p>
         )}
       </div>
+      <MoodGraph email={user.email} />
     </div>
   );
 };
