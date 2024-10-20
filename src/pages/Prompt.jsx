@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { queryLlama3 } from "../API call/mood_detect";
 import { SpotifySongSuggestion } from "../Song";
-import { generatePrompt } from "../API call/question_gen";  // Assuming generatePrompt is in apiService.js
+import { generatePrompt } from "../API call/question_gen"; 
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
 import { Loader } from "../components";
@@ -53,9 +53,8 @@ const Prompt = () => {
           );
           setSongSuggestion(response);
 
-          // Navigate to Post component and pass the data
           navigate("/post", {
-            state: { songSuggestion: response, generatedPrompt: generatedPrompt }
+            state: { songSuggestion: response, generatedPrompt: generatedPrompt, llamaResponse: llamaResponse, inputSentence: inputSentence }
           });
         } catch (err) {
           setError(err.message);
@@ -103,23 +102,6 @@ const Prompt = () => {
         </form>
 
         {error && <p className="text-red-500">{error}</p>}
-
-        {/* Display the suggested song based on mood */}
-        {songSuggestion && (
-          <div style={{ marginTop: "20px" }}>
-            <h2>Spotify Song Suggestion</h2>
-            <div>
-              <iframe
-                src={`https://open.spotify.com/embed/track/${songSuggestion[0].id}`}
-                width="300"
-                height="80"
-                frameBorder="0"
-                allowtransparency="true"
-                allow="encrypted-media"
-              ></iframe>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="lg:w-1/2 w-full lg:h-auto md:h-[550px] h-[350px]">

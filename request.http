@@ -1,0 +1,36 @@
+### Create a new user
+POST http://127.0.0.1:8000/users/
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "securepassword123",
+  "username": "testuser"
+}
+
+### GET all users
+GET http://127.0.0.1:8000/users/
+
+### POST an activity for a user
+POST http://127.0.0.1:8000/users/huyngu@gmail.com/activities/
+Content-Type: application/json
+
+{
+  "date": "2024-10-01",
+  "details": {
+    "prompt": "How was your day?",
+    "answer": "What did you learn?",
+    "mood_answer": "I learned FastAPI!",
+    "mood_rating": 8,
+    "songId": "vinh"
+  }
+}
+
+### Get activities for a user
+GET http://127.0.0.1:8000/users/huyngu@gmail.com/activities/
+
+### Get coins of a user
+GET http://127.0.0.1:8000/users/test5@gmail.com/coins/
+
+### Update number of coin for a user
+PUT http://127.0.0.1:8000/users/test5@gmail.com/coins/?coins=100
