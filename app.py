@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware  # Import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -8,8 +9,19 @@ import bcrypt
 import os
 from dotenv import load_dotenv
 
-# Create FastAPI app instance
 app = FastAPI()
+
+origins = [
+    "http://localhost:5173",  
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins, 
+    allow_credentials=True,
+    allow_methods=["*"],  
+    allow_headers=["*"],  
+)
 
 load_dotenv()
 mongo_password = os.getenv('MONGO_DB_PASSWORD')
@@ -179,6 +191,7 @@ async def add_activity(email: str, activity: Activity):
         await activities_collection.update_one(
             {"email": email},
             {"$set": {f"activities.{activity.date}": new_activity[activity.date]}}
+
         )
     else:
         # Create a new activity record for the user
@@ -240,14 +253,13 @@ async def delete_activity(email: str, date: str):
 
     return {"message": "Activity deleted successfully"}
 
-# Get user activities by email
+# Get user activities
 @app.get("/users/{email}/activities/")
 async def get_user_activities(email: str):
     user_activity = await activities_collection.find_one({"email": email})
 
     if not user_activity:
         raise HTTPException(status_code=404, detail="User activities not found")
-
     return activity_helper(user_activity)
 
 # Get activity by date
