@@ -6,7 +6,7 @@ import { auth } from "../firebase";
 import { Fox } from "../models";
 import useAlert from "../hooks/useAlert";
 import { Alert, Loader } from "../components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; 
 
 const Login = () => {
   const formRef = useRef();

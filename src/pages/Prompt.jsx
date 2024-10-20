@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { queryLlama3 } from "../API call/mood_detect";
 import { SpotifySongSuggestion } from "../Song";
+import { generatePrompt } from "../API call/question_gen";  // Assuming generatePrompt is in apiService.js
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
 import { Loader } from "../components";
@@ -14,6 +15,7 @@ const Prompt = () => {
   const [songSuggestion, setSongSuggestion] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [generatedPrompt, setGeneratedPrompt] = useState(""); 
   const [currentAnimation, setCurrentAnimation] = useState("idle");
 
   const handleChange = ({ target: { value } }) => {
@@ -27,10 +29,11 @@ const Prompt = () => {
     setCurrentAnimation("hit");
 
     try {
+      const promptResponse = await generatePrompt(inputSentence);
+      setGeneratedPrompt(promptResponse);
+
       const response = await queryLlama3(inputSentence);
       setLlamaResponse(response);
-      navigate("/post");
-
     } catch (err) {
       setError(err.message);
     } finally {
@@ -49,6 +52,11 @@ const Prompt = () => {
             llamaResponse.energy
           );
           setSongSuggestion(response);
+
+          // Navigate to Post component and pass the data
+          navigate("/post", {
+            state: { songSuggestion: response, generatedPrompt: generatedPrompt }
+          });
         } catch (err) {
           setError(err.message);
         }
@@ -56,7 +64,7 @@ const Prompt = () => {
     };
 
     suggestSong();
-  }, [llamaResponse]);
+  }, [llamaResponse, generatedPrompt, navigate]);
 
   return (
     <section className="relative flex lg:flex-row flex-col max-container">
@@ -96,6 +104,7 @@ const Prompt = () => {
 
         {error && <p className="text-red-500">{error}</p>}
 
+        {/* Display the suggested song based on mood */}
         {songSuggestion && (
           <div style={{ marginTop: "20px" }}>
             <h2>Spotify Song Suggestion</h2>
@@ -120,7 +129,6 @@ const Prompt = () => {
           <pointLight position={[5, 10, 0]} intensity={2} />
           <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} />
           <Suspense fallback={<Loader />}>
-            {/* Here you can replace with a model or visual animation of your choice */}
           </Suspense>
         </Canvas>
       </div>

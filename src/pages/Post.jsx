@@ -1,3 +1,5 @@
+import React from "react";
+import { useLocation } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useRef, useState } from "react";
 
@@ -7,10 +9,19 @@ import { Alert, Loader } from "../components";
 
 const Post = () => {
   const formRef = useRef();
-  const [form, setForm] = useState({ title: "", content: "", prompt: "Write a blog post about the future of AI." });
   const { alert, showAlert, hideAlert } = useAlert();
   const [loading, setLoading] = useState(false);
   const [currentAnimation, setCurrentAnimation] = useState("idle");
+
+  // Extract songSuggestion and generatedPrompt from useLocation
+  const location = useLocation();
+  const { songSuggestion, generatedPrompt } = location.state || {};
+
+  // Initialize the form state with the generatedPrompt value
+  const [form, setForm] = useState({
+    content: "",
+    prompt: generatedPrompt || "Write how you feel today", // default value in case it's undefined
+  });
 
   const handleChange = ({ target: { name, value } }) => {
     setForm({ ...form, [name]: value });
@@ -36,10 +47,11 @@ const Post = () => {
       setTimeout(() => {
         hideAlert();
         setCurrentAnimation("idle");
+
+        // Reset form and set prompt back to generatedPrompt
         setForm({
-          title: "",
           content: "",
-          prompt: "Write a blog post about the future of AI.", // reset prompt
+          prompt: generatedPrompt || "", // reset to the passed prompt
         });
       }, 3000);
     }, 2000);
@@ -58,7 +70,7 @@ const Post = () => {
           className='w-full flex flex-col gap-7 mt-14'
         >
           <label className='text-black-500 font-semibold'>
-            Blog Prompt
+            Prompt
             <textarea
               name='prompt'
               className='textarea'
@@ -69,22 +81,7 @@ const Post = () => {
           </label>
 
           <label className='text-black-500 font-semibold'>
-            Blog Title
-            <input
-              type='text'
-              name='title'
-              className='input'
-              placeholder='Enter a captivating title...'
-              required
-              value={form.title}
-              onChange={handleChange}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
-            />
-          </label>
-
-          <label className='text-black-500 font-semibold'>
-            Blog Content
+            Content
             <textarea
               name='content'
               rows='8'
