@@ -56,11 +56,13 @@ class User(BaseModel):
     email: str
     password: str
     username: str = None
+    coins: int
 
 class UserResponse(BaseModel):
     id: str
     email: str
     username: str = None
+    coins: int
 
 class UserUpdate(BaseModel):
     email: Optional[str]
@@ -258,5 +260,40 @@ async def get_user_activities(email: str):
 
     if not user_activity:
         raise HTTPException(status_code=404, detail="User activities not found")
+    return activity_helper(user_activity)
 
-    return user_activity["activities"]
+# Get activity by date
+@app.get("/users/{email}/activities/{date}")
+async def get_activity_by_date(email: str, date: str):
+    user_activity = await activities_collection.find_one({"email": email})
+
+    if not user_activity:
+        raise HTTPException(status_code=404, detail="User activities not found")
+
+    if date not in user_activity['activities']:
+        raise HTTPException(status_code=404, detail="Activity for given date not found")
+
+    activity = user_activity['activities'][date]
+
+    return {"date": date, "activity": activity}
+
+# Get the number of coins for a user
+@app.get("/users/{email}/coins/")
+async def get_user_coins(email: str):
+    user = await users_collection.find_one({"email": email})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {user.get("coins", 0)}
+
+# Update the number of coins for a user
+@app.put("/users/{email}/coins/")
+async def update_user_coins(email: str, coins: int):
+    user = await users_collection.find_one({"email": email})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    # Update the user's coin balance
+    await users_collection.update_one(
+        {"email": email},
+        {"$set": {"coins": coins}}
+    )
+    return {user.get("coins", 0)}
