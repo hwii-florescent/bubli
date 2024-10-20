@@ -18,7 +18,7 @@ export const generatePrompt = async (inputSentence) => {
       },
       {
         headers: {
-          Authorization: `Bearer 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`,
+          Authorization: `Bearer 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`,
           'Content-Type': 'application/json',
         },
       }

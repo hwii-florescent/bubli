@@ -10,6 +10,7 @@ import useAlert from "../hooks/useAlert";
 import { Alert, Loader } from "../components";
 
 import { AuthContext } from "../App";
+import { apiUrl } from "../constant";
 
 const Post = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const Post = () => {
   const [currentAnimation, setCurrentAnimation] = useState("idle");
   const {user, setUser} = useContext(AuthContext);
   const [coins, setCoins] = useState(0);
+
 
   const location = useLocation();
   const { songSuggestion, generatedPrompt, llamaResponse, inputSentence } =
@@ -51,7 +53,7 @@ const Post = () => {
 
   const getCoinsFromDatabase = async (userEmail) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/users/${userEmail}/coins/`);
+      const response = await fetch(`${apiUrl}/users/${userEmail}/coins/`);
       
       if (!response.ok) {
         throw new Error("Failed to fetch coin data.");
@@ -86,8 +88,8 @@ const Post = () => {
     const llamaResponseJSON = JSON.parse(jsonString);
     console.log(llamaResponseJSON);
 
-    const apiUrl = `http://127.0.0.1:8000/users/${user.email}/activities/`;
-    const coinApiUrl = `http://127.0.0.1:8000/users/${user.email}/coins/`;
+    const actApiUrl = `${apiUrl}/users/${user.email}/activities/`;
+    const coinApiUrl = `${apiUrl}/users/${user.email}/coins/`;
     console.log(songSuggestion);
     const activityData = {
       date: new Date().toISOString().split("T")[0],
@@ -101,7 +103,7 @@ const Post = () => {
     };
 
     try {
-      const response = await fetch(apiUrl, {
+      const response = await fetch(actApiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

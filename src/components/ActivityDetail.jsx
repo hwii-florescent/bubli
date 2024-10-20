@@ -3,6 +3,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { AuthContext } from '../App'; // Adjust the path if necessary
 import axios from 'axios';
+import { apiUrl } from '../constant';
 
 const ActivityDetail = () => {
   const { user } = useContext(AuthContext);
@@ -16,7 +17,7 @@ const ActivityDetail = () => {
         const decodedDate = decodeURIComponent(date);
 
         const response = await axios.get(
-          `http://127.0.0.1:8000/users/${user.email}/activities/${decodedDate}`
+          `${apiUrl}/users/${user.email}/activities/${decodedDate}`
         );
 
         const activityData = response.data.activity;
