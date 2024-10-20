@@ -32,7 +32,7 @@ const HomeInfo = ({ currentStage }) => {
           I'm so proud of your journey so far! <br /> See you what you wrote below
         </p>
 
-        <Link to='/projects' className='neo-brutalism-white neo-btn'>
+        <Link to='/history' className='neo-brutalism-white neo-btn'>
           Visit
           <img src={arrow} alt='arrow' className='w-4 h-4 object-contain' />
         </Link>
