@@ -56,13 +56,13 @@ class User(BaseModel):
     email: str
     password: str
     username: str = None
-    coins: int
+    coins: int = 0
 
 class UserResponse(BaseModel):
     id: str
     email: str
     username: str = None
-    coins: int
+    coins: int = 0
 
 class UserUpdate(BaseModel):
     email: Optional[str]
