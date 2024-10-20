@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase"; // Adjust the path to your firebase configuration
 import { Footer, Navbar, ActivityDetail } from "./components";
-import { Home, Register, Login, Post, Prompt, History } from "./pages";
+import { Home, Register, Login, Post, Prompt, History,FunUI } from "./pages";
 import ProtectedRoute from "./components/ProtectedRoute"; // Adjust the path
 
 // Create a context for authentication
@@ -33,9 +33,11 @@ const App = () => {
         <Router>
           <Navbar />
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path='/' element={<Home />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/register' element={<Register />} />
+            <Route path='/funui' element={<FunUI />} />
+
             <Route
               path="/post"
               element={
