@@ -77,10 +77,10 @@ const Navbar = () => {
           </>
         ) : (
           <>
-            <span className="text-white font-medium">Welcome, {user.email}</span>
+            <span className="text-blue-600 font-medium">Welcome, {user.email}</span>
             <button
               onClick={handleLogout}
-              className='text-white font-medium hover:text-blue-600'
+              className='text-black font-medium hover:text-blue-600'
             >
               Logout
             </button>
