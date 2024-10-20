@@ -15,7 +15,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [currentAnimation, setCurrentAnimation] = useState("idle");
   
-  const navigate = useNavigate(); // Initialize navigate function
+  const navigate = useNavigate();
 
   const handleChange = ({ target: { name, value } }) => {
     setForm({ ...form, [name]: value });
@@ -24,7 +24,6 @@ const Login = () => {
   const handleFocus = () => setCurrentAnimation("walk");
   const handleBlur = () => setCurrentAnimation("idle");
 
-  // Handle form submission for login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
