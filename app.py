@@ -307,3 +307,18 @@ async def update_user_coins(email: str, coins: int):
         {"$set": {"coins": coins}}
     )
     return {user.get("coins", 0)}
+
+@app.get("/users/{email}/mood-ratings/")
+async def get_mood_ratings(email: str):
+    user_activity = await activities_collection.find_one({"email": email})
+
+    if not user_activity:
+        raise HTTPException(status_code=404, detail="User activities not found")
+
+    # Extract mood ratings and corresponding dates
+    mood_data = [
+        {"date": activity["date"], "mood_rating": activity["mood_rating"]}
+        for activity in user_activity["activities"]
+    ]
+
+    return mood_data
