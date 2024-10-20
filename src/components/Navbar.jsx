@@ -9,21 +9,38 @@ import { AuthContext } from "../App";
 
 const Navbar = () => {
   const {user, setUser} = useContext(AuthContext);
-  const [coins, setCoins] = useState(0); 
+  const [coins, setCoins] = useState(0);  // State to track coins
+  const [ssong, setSong] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser); 
 
       if (currentUser) {
-        const updatedCoins = await getCoinsFromDatabase(currentUser.email);
-        setCoins(updatedCoins);  
+        getCoinsFromDatabase(user.email);
+        getCurrentSong(user.email);
       }
     });
 
     return () => unsubscribe(); 
   }, [auth]); 
 
+
+  const getCurrentSong = async (userEmail) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/users/${userEmail}/activities`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch coin data.");
+      }
+      const ssong = await response.json();
+      console.log(ssong);
+      setSong(ssong[0].song);
+      return ssong[0].song;
+    } catch (error) {
+      console.error("error", error);
+      return 0;
+    }
+  }
 
   const getCoinsFromDatabase = async (userEmail) => {
     try {
@@ -34,7 +51,8 @@ const Navbar = () => {
       }
 
       const coins = await response.json(); 
-      return coins[0];
+      setCoins(coins[0]);
+      return coins[0];  
     } catch (error) {
       console.error("Error fetching coins:", error);
       return 0; 
@@ -58,7 +76,16 @@ const Navbar = () => {
         <NavLink to='/' className="text-black hover:text-blue-600 text-3xl">
           <AiOutlineHome />
         </NavLink>
-  
+        <div className="mt-4">
+          <iframe
+            src={`https://open.spotify.com/embed/track/${ssong}`}
+            width="300"
+            height="80"
+            frameBorder="0"
+            allow="encrypted-media"
+            title="Spotify Player"
+          ></iframe>
+        </div>
         {/* Coin Tracker Icon */}
         <div className="flex items-center gap-2 text-xl text-white">
           <FaCoins className="text-yellow-500" />
@@ -77,7 +104,7 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <span className="text-black font-medium">Welcome, {user.displayName || user.email}</span>
+              <span className="text-black font-medium">Welcome, {user.username || user.email}</span>
               <button
                 onClick={handleLogout}
                 className='text-black font-medium hover:text-blue-600'
