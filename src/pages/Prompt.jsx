@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { queryLlama3 } from "../API call/mood_detect";
 import { SpotifySongSuggestion } from "../Song";
-import { generatePrompt } from "../API call/question_gen";  // Assuming generatePrompt is in apiService.js
+import { generatePrompt } from "../API call/question_gen"; 
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
 import { Loader } from "../components";
@@ -53,9 +53,8 @@ const Prompt = () => {
           );
           setSongSuggestion(response);
 
-          // Navigate to Post component and pass the data
           navigate("/post", {
-            state: { songSuggestion: response, generatedPrompt: generatedPrompt }
+            state: { songSuggestion: response, generatedPrompt: generatedPrompt, llamaResponse: llamaResponse, inputSentence: inputSentence }
           });
         } catch (err) {
           setError(err.message);

@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useRef, useState } from "react";
+import { Suspense } from "react";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 import { Fox } from "../models";
 import useAlert from "../hooks/useAlert";
@@ -12,16 +13,28 @@ const Post = () => {
   const { alert, showAlert, hideAlert } = useAlert();
   const [loading, setLoading] = useState(false);
   const [currentAnimation, setCurrentAnimation] = useState("idle");
+  const [user, setUser] = useState(null); 
 
-  // Extract songSuggestion and generatedPrompt from useLocation
   const location = useLocation();
-  const { songSuggestion, generatedPrompt } = location.state || {};
+  const { songSuggestion, generatedPrompt, llamaResponse, inputSentence } = location.state || {};
 
-  // Initialize the form state with the generatedPrompt value
   const [form, setForm] = useState({
     content: "",
-    prompt: generatedPrompt || "Write how you feel today", // default value in case it's undefined
+    prompt: generatedPrompt || "Write how you feel today",
   });
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser); 
+      } else {
+        setUser(null); 
+      }
+    });
+
+    return () => unsubscribe(); 
+  }, []);
 
   const handleChange = ({ target: { name, value } }) => {
     setForm({ ...form, [name]: value });
@@ -30,39 +43,88 @@ const Post = () => {
   const handleFocus = () => setCurrentAnimation("walk");
   const handleBlur = () => setCurrentAnimation("idle");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setCurrentAnimation("hit");
 
-    // Simulating submission process
-    setTimeout(() => {
-      setLoading(false);
+    if (!user) {
       showAlert({
         show: true,
-        text: "Blog submitted successfully! 🎉",
-        type: "success",
+        text: "You must be logged in to submit a blog.",
+        type: "error",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const apiUrl = `http://127.0.0.1:8000/users/${user.email}/activities/`;
+
+    const activityData = {
+      date: new Date().toISOString().split("T")[0],
+      details: {
+        prompt: form.prompt,
+        answer: form.content,
+        mood_answer: inputSentence || "", 
+        mood_rating: parseInt(llamaResponse?.valence * 10) || 0, 
+        songId: songSuggestion?.[0]?.id || "", 
+      },
+    };
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(activityData),
+      });
+
+      if (response.ok) {
+        showAlert({
+          show: true,
+          text: "Blog submitted successfully! 🎉",
+          type: "success",
+        });
+      } else {
+        showAlert({
+          show: true,
+          text: "Failed to submit blog. Please try again.",
+          type: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting blog:", error);
+      showAlert({
+        show: true,
+        text: "An error occurred. Please try again later.",
+        type: "error",
+      });
+    } finally {
+      setLoading(false);
+      setCurrentAnimation("idle");
+
+      setForm({
+        content: "",
+        prompt: generatedPrompt || "",
       });
 
       setTimeout(() => {
         hideAlert();
-        setCurrentAnimation("idle");
-
-        // Reset form and set prompt back to generatedPrompt
-        setForm({
-          content: "",
-          prompt: generatedPrompt || "", // reset to the passed prompt
-        });
       }, 3000);
-    }, 2000);
+    }
   };
 
   return (
     <section className='relative flex lg:flex-row flex-col max-container'>
       {alert.show && <Alert {...alert} />}
-
       <div className='flex-1 min-w-[50%] flex flex-col'>
         <h1 className='head-text'>Write Your Blog</h1>
+        {user ? (
+          <p>Welcome, {user.email}</p>
+        ) : (
+          <p>Please log in to submit a blog.</p>
+        )}
 
         <form
           ref={formRef}
@@ -97,7 +159,7 @@ const Post = () => {
 
           <button
             type='submit'
-            disabled={loading}
+            disabled={loading || !user}
             className='btn'
             onFocus={handleFocus}
             onBlur={handleBlur}
