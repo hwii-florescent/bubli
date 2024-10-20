@@ -52,7 +52,7 @@ const Prompt = () => {
             llamaResponse.energy
           );
           setSongSuggestion(response);
-
+          console.log(response);
           navigate("/post", {
             state: { songSuggestion: response, generatedPrompt: generatedPrompt, llamaResponse: llamaResponse, inputSentence: inputSentence }
           });

@@ -13,6 +13,6 @@ export {
     Post,
     Register,
     Prompt,
-    FunUI
+    FunUI,
     History
 }

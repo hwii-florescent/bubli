@@ -88,7 +88,7 @@ const Post = () => {
 
     const apiUrl = `http://127.0.0.1:8000/users/${user.email}/activities/`;
     const coinApiUrl = `http://127.0.0.1:8000/users/${user.email}/coins/`;
-
+    console.log(songSuggestion);
     const activityData = {
       date: new Date().toISOString().split("T")[0],
       details: {

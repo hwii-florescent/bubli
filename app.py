@@ -181,7 +181,7 @@ async def add_activity(email: str, activity: Activity):
         "answer": activity.details.answer,
         "mood_answer": activity.details.mood_answer,
         "mood_rating": activity.details.mood_rating,
-        "song": activity.details.songId
+        "songId": activity.details.songId
     }
 
     # Check if the user has an existing activity record
