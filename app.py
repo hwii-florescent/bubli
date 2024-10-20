@@ -93,9 +93,7 @@ async def create_user(user: User):
 async def get_users():
     users = []
     async for user in users_collection.find():
-        temp = user_helper(user)
-        users.append(temp)
-    print(users)
+        users.append(user_helper(user))
     return users
 
 # Create or update user activity
