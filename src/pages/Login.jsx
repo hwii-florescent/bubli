@@ -6,7 +6,7 @@ import { auth } from "../firebase";
 import { Fox } from "../models";
 import useAlert from "../hooks/useAlert";
 import { Alert, Loader } from "../components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; 
 
 const Login = () => {
   const formRef = useRef();
@@ -31,7 +31,7 @@ const Login = () => {
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
-      
+
       const user = userCredential.user;
       console.log("Logged in user:", user);
 
@@ -42,14 +42,15 @@ const Login = () => {
 
       setTimeout(() => {
         navigate("/"); 
-      }, 3000); 
+      }, 1500); 
 
       setForm({ email: "", password: "" });
     } catch (error) {
       console.error("Error logging in:", error);
+
       showAlert({
         type: "error",
-        message: error.message,
+        message: "Login failed: " + error.message, 
       });
     } finally {
       setLoading(false);
