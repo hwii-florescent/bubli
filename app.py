@@ -264,3 +264,24 @@ async def get_activity_by_date(email: str, date: str):
     activity = user_activity['activities'][date]
 
     return {"date": date, "activity": activity}
+
+# Get the number of coins for a user
+@app.get("/users/{email}/coins/")
+async def get_user_coins(email: str):
+    user = await users_collection.find_one({"email": email})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {user.get("coins", 0)}
+
+# Update the number of coins for a user
+@app.put("/users/{email}/coins/")
+async def update_user_coins(email: str, coins: int):
+    user = await users_collection.find_one({"email": email})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    # Update the user's coin balance
+    await users_collection.update_one(
+        {"email": email},
+        {"$set": {"coins": coins}}
+    )
+    return {user.get("coins", 0)}
