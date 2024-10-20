@@ -28,7 +28,7 @@ def user_helper(user) -> dict:
     return {
         "id": str(user["_id"]),
         "email": user["email"],
-        "username": user["username"]
+        "username": user.get("username", "")
     }
 
 def activity_helper(activity) -> dict:
@@ -45,11 +45,17 @@ class User(BaseModel):
     password: str
     username: str = None
 
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    username: str = None
+
 class ActivityEntry(BaseModel):
     prompt: str
-    question: str
     answer: str
+    mood_answer: str
     mood_rating: int
+    songId: str
 
 class Activity(BaseModel):
     date: str = Field(default=str(date.today()))  # Default to today's date
@@ -83,11 +89,13 @@ async def create_user(user: User):
     return user_helper(created_user)
 
 # Get all users
-@app.get("/users/", response_model=List[User])
+@app.get("/users/", response_model=List[UserResponse])
 async def get_users():
     users = []
     async for user in users_collection.find():
-        users.append(user_helper(user))
+        temp = user_helper(user)
+        users.append(temp)
+    print(users)
     return users
 
 # Create or update user activity
@@ -105,9 +113,10 @@ async def add_activity(email: str, activity: Activity):
     new_activity = {
         activity.date: {
             "prompt": activity.details.prompt,
-            "question": activity.details.question,
             "answer": activity.details.answer,
-            "mood_rating": activity.details.mood_rating
+            "mood_answer": activity.details.mood_answer,
+            "mood_rating": activity.details.mood_rating,
+            "song": activity.details.songId
         }
     }
     

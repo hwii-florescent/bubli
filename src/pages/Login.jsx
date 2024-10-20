@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth"; 
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 import { Fox } from "../models";
 import useAlert from "../hooks/useAlert";
@@ -14,7 +14,7 @@ const Login = () => {
   const { alert, showAlert } = useAlert();
   const [loading, setLoading] = useState(false);
   const [currentAnimation, setCurrentAnimation] = useState("idle");
-  
+
   const navigate = useNavigate();
 
   const handleChange = ({ target: { name, value } }) => {
@@ -24,58 +24,57 @@ const Login = () => {
   const handleFocus = () => setCurrentAnimation("walk");
   const handleBlur = () => setCurrentAnimation("idle");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = (event) => {
+    event.preventDefault(); // Prevent the default form submission
     setLoading(true);
     setCurrentAnimation("hit");
-
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
-      
-      const user = userCredential.user;
-      console.log("Logged in user:", user);
-
-      showAlert({
-        type: "success",
-        message: "Login successful!",
+  
+    // Firebase Authentication request
+    signInWithEmailAndPassword(auth, form.email, form.password)
+      .then(() => {
+        // Handle successful login
+        showAlert({
+          text: "Login successful!",
+          type: "success",
+        });
+        setForm({ email: "", password: "" });
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
+      })
+      .catch((error) => {
+        // Handle specific Firebase errors
+        // Show error alert with the appropriate error message
+        showAlert({
+          text: error.message,
+          type: "danger",
+        });
+      })
+      .finally(() => {
+        setLoading(false);
       });
-
-      setTimeout(() => {
-        navigate("/"); 
-      }, 3000); 
-
-      setForm({ email: "", password: "" });
-    } catch (error) {
-      console.error("Error logging in:", error);
-      showAlert({
-        type: "error",
-        message: error.message,
-      });
-    } finally {
-      setLoading(false);
-      setCurrentAnimation("idle");
-    }
   };
+  
 
   return (
-    <section className='relative flex lg:flex-row flex-col max-container'>
+    <section className="relative flex lg:flex-row flex-col max-container">
       {alert.show && <Alert {...alert} />}
 
-      <div className='flex-1 min-w-[50%] flex flex-col'>
-        <h1 className='head-text'>Login</h1>
+      <div className="flex-1 min-w-[50%] flex flex-col">
+        <h1 className="head-text">Login</h1>
 
         <form
           ref={formRef}
           onSubmit={handleSubmit}
-          className='w-full flex flex-col gap-7 mt-14'
+          className="w-full flex flex-col gap-7 mt-14"
         >
-          <label className='text-black-500 font-semibold'>
+          <label className="text-black-500 font-semibold">
             Email
             <input
-              type='email'
-              name='email'
-              className='input'
-              placeholder='john@gmail.com'
+              type="email"
+              name="email"
+              className="input"
+              placeholder="john@gmail.com"
               required
               value={form.email}
               onChange={handleChange}
@@ -84,13 +83,13 @@ const Login = () => {
             />
           </label>
 
-          <label className='text-black-500 font-semibold'>
+          <label className="text-black-500 font-semibold">
             Password
             <input
-              type='password'
-              name='password'
-              className='input'
-              placeholder='••••••••'
+              type="password"
+              name="password"
+              className="input"
+              placeholder="••••••••"
               required
               value={form.password}
               onChange={handleChange}
@@ -100,9 +99,9 @@ const Login = () => {
           </label>
 
           <button
-            type='submit'
+            type="submit"
             disabled={loading}
-            className='btn'
+            className="btn"
             onFocus={handleFocus}
             onBlur={handleBlur}
           >
@@ -111,7 +110,7 @@ const Login = () => {
         </form>
       </div>
 
-      <div className='lg:w-1/2 w-full lg:h-auto md:h-[550px] h-[350px]'>
+      <div className="lg:w-1/2 w-full lg:h-auto md:h-[550px] h-[350px]">
         <Canvas
           camera={{
             position: [0, 0, 5],
