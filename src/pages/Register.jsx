@@ -48,7 +48,7 @@ const Register = () => {
         setCurrentAnimation("idle");
         setForm({ name: "", email: "", password: "" });
         navigate("/"); 
-      }, 3000);
+      }, 1500);
 
     } catch (error) {
       console.error(error);
