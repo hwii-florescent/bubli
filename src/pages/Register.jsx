@@ -1,8 +1,11 @@
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useRef, useState } from "react";
-import { Fox } from "../models";  // Assuming you already have a Fox model
-import useAlert from "../hooks/useAlert"; // Assuming you already have a custom useAlert hook
-import { Alert, Loader } from "../components"; // Assuming you have Alert and Loader components
+import { Fox } from "../models"; 
+import useAlert from "../hooks/useAlert"; 
+import { Alert, Loader } from "../components";
+import { auth } from "../firebase"; 
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { useNavigate } from "react-router-dom"; 
 
 const Register = () => {
   const formRef = useRef();
@@ -10,6 +13,7 @@ const Register = () => {
   const { alert, showAlert, hideAlert } = useAlert();
   const [loading, setLoading] = useState(false);
   const [currentAnimation, setCurrentAnimation] = useState("idle");
+  const navigate = useNavigate(); 
 
   const handleChange = ({ target: { name, value } }) => {
     setForm({ ...form, [name]: value });
@@ -23,37 +27,29 @@ const Register = () => {
     setLoading(true);
     setCurrentAnimation("hit");
 
-    const userData = {
-      name: form.name,
-      email: form.email,
-      password: form.password,
-    };
-
     try {
-      const response = await fetch('https://your-backend-api.com/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        form.email,
+        form.password
+      );
+
+      const user = userCredential.user;
+
+      setLoading(false);
+      showAlert({
+        show: true,
+        text: "Registration successful! 🎉",
+        type: "success",
       });
 
-      if (response.ok) {
-        setLoading(false);
-        showAlert({
-          show: true,
-          text: "Registration successful! 🎉",
-          type: "success",
-        });
+      setTimeout(() => {
+        hideAlert();
+        setCurrentAnimation("idle");
+        setForm({ name: "", email: "", password: "" });
+        navigate("/"); 
+      }, 3000);
 
-        setTimeout(() => {
-          hideAlert();
-          setCurrentAnimation("idle");
-          setForm({ name: "", email: "", password: "" });
-        }, 3000);
-      } else {
-        throw new Error("Registration failed");
-      }
     } catch (error) {
       console.error(error);
       setLoading(false);

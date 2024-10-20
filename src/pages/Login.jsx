@@ -1,16 +1,21 @@
+import React, { useState, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useRef, useState } from "react";
-
+import { Suspense } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth"; 
+import { auth } from "../firebase";
 import { Fox } from "../models";
 import useAlert from "../hooks/useAlert";
 import { Alert, Loader } from "../components";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const formRef = useRef();
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const { alert, showAlert, hideAlert } = useAlert();
+  const [form, setForm] = useState({ email: "", password: "" });
+  const { alert, showAlert } = useAlert();
   const [loading, setLoading] = useState(false);
   const [currentAnimation, setCurrentAnimation] = useState("idle");
+  
+  const navigate = useNavigate();
 
   const handleChange = ({ target: { name, value } }) => {
     setForm({ ...form, [name]: value });
@@ -19,11 +24,37 @@ const Login = () => {
   const handleFocus = () => setCurrentAnimation("walk");
   const handleBlur = () => setCurrentAnimation("idle");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setCurrentAnimation("hit");
-    setLoading(false); // Reset loading state after the process
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
+      
+      const user = userCredential.user;
+      console.log("Logged in user:", user);
+
+      showAlert({
+        type: "success",
+        message: "Login successful!",
+      });
+
+      setTimeout(() => {
+        navigate("/"); 
+      }, 3000); 
+
+      setForm({ email: "", password: "" });
+    } catch (error) {
+      console.error("Error logging in:", error);
+      showAlert({
+        type: "error",
+        message: error.message,
+      });
+    } finally {
+      setLoading(false);
+      setCurrentAnimation("idle");
+    }
   };
 
   return (
