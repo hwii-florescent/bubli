@@ -6,7 +6,7 @@ import { auth } from "../firebase";
 import { Fox } from "../models";
 import useAlert from "../hooks/useAlert";
 import { Alert, Loader } from "../components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; 
 
 const Login = () => {
   const formRef = useRef();
@@ -15,7 +15,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [currentAnimation, setCurrentAnimation] = useState("idle");
   
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Initialize navigate function
 
   const handleChange = ({ target: { name, value } }) => {
     setForm({ ...form, [name]: value });
@@ -24,6 +24,7 @@ const Login = () => {
   const handleFocus = () => setCurrentAnimation("walk");
   const handleBlur = () => setCurrentAnimation("idle");
 
+  // Handle form submission for login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -32,24 +33,30 @@ const Login = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
       
+      // Successfully signed in
       const user = userCredential.user;
       console.log("Logged in user:", user);
 
+      // Show success alert only on successful login
       showAlert({
         type: "success",
         message: "Login successful!",
       });
 
+      // Delay navigation to homepage after 1.5 seconds
       setTimeout(() => {
         navigate("/"); 
-      }, 3000); 
+      }, 1500); 
 
+      // Reset the form after login success
       setForm({ email: "", password: "" });
     } catch (error) {
       console.error("Error logging in:", error);
+      
+      // Show error alert only on failed login
       showAlert({
         type: "error",
-        message: error.message,
+        message: "Login failed: " + error.message, 
       });
     } finally {
       setLoading(false);
