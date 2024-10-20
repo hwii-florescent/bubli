@@ -8,6 +8,8 @@ from datetime import date
 import bcrypt
 import os
 from dotenv import load_dotenv
+from datetime import datetime
+from urllib.parse import unquote
 
 app = FastAPI()
 
@@ -84,7 +86,7 @@ class ActivityEntryUpdate(BaseModel):
     songId: Optional[str]
 
 class Activity(BaseModel):
-    date: str = Field(default=str(date.today()))  # Default to today's date
+    date: datetime = Field(default_factory=datetime.now)  # Default to today's date
     details: ActivityEntry
 
 # Function to hash a password using bcrypt
@@ -172,41 +174,40 @@ async def add_activity(email: str, activity: Activity):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    # Prepare new activity entry
+    activity_entry = {
+        "date": activity.date.isoformat(),
+        "prompt": activity.details.prompt,
+        "answer": activity.details.answer,
+        "mood_answer": activity.details.mood_answer,
+        "mood_rating": activity.details.mood_rating,
+        "song": activity.details.songId
+    }
+
     # Check if the user has an existing activity record
     user_activity = await activities_collection.find_one({"email": email})
 
-    # Prepare new activity entry
-    new_activity = {
-        activity.date: {
-            "prompt": activity.details.prompt,
-            "answer": activity.details.answer,
-            "mood_answer": activity.details.mood_answer,
-            "mood_rating": activity.details.mood_rating,
-            "song": activity.details.songId
-        }
-    }
-
     if user_activity:
-        # Update the existing record
+        # Append the new activity to the list
         await activities_collection.update_one(
             {"email": email},
-            {"$set": {f"activities.{activity.date}": new_activity[activity.date]}}
-
+            {"$push": {"activities": activity_entry}}
         )
     else:
         # Create a new activity record for the user
         new_activity_record = {
             "user_id": user["_id"],
             "email": email,
-            "activities": new_activity
+            "activities": [activity_entry]
         }
         await activities_collection.insert_one(new_activity_record)
 
     return {"message": "Activity saved successfully"}
 
+
 # Update an activity
 @app.put("/users/{email}/activities/{date}")
-async def update_activity(email: str, date: str, activity_update: ActivityEntryUpdate):
+async def update_activity(email: str, date: datetime, activity_update: ActivityEntryUpdate):
     user_activity = await activities_collection.find_one({"email": email})
 
     if not user_activity:
@@ -260,7 +261,9 @@ async def get_user_activities(email: str):
 
     if not user_activity:
         raise HTTPException(status_code=404, detail="User activities not found")
+
     return user_activity["activities"]
+
 
 # Get activity by date
 @app.get("/users/{email}/activities/{date}")
@@ -270,12 +273,19 @@ async def get_activity_by_date(email: str, date: str):
     if not user_activity:
         raise HTTPException(status_code=404, detail="User activities not found")
 
-    if date not in user_activity['activities']:
+    decoded_date = unquote(date)
+
+    # Find the activity with the matching date
+    activity = next(
+        (act for act in user_activity['activities'] if act['date'] == decoded_date),
+        None
+    )
+
+    if not activity:
         raise HTTPException(status_code=404, detail="Activity for given date not found")
+    print(activity)
+    return {"date": decoded_date, "activity": activity}
 
-    activity = user_activity['activities'][date]
-
-    return {"date": date, "activity": activity}
 
 # Get the number of coins for a user
 @app.get("/users/{email}/coins/")

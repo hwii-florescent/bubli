@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -11,6 +12,7 @@ import { Alert, Loader } from "../components";
 import { AuthContext } from "../App";
 
 const Post = () => {
+  const navigate = useNavigate();
   const formRef = useRef();
   const { alert, showAlert, hideAlert } = useAlert();
   const [loading, setLoading] = useState(false);
@@ -19,7 +21,8 @@ const Post = () => {
   const [coins, setCoins] = useState(0);
 
   const location = useLocation();
-  const { songSuggestion, generatedPrompt, llamaResponse, inputSentence } = location.state || {};
+  const { songSuggestion, generatedPrompt, llamaResponse, inputSentence } =
+    location.state || {};
 
   const [form, setForm] = useState({
     content: "",
@@ -30,13 +33,13 @@ const Post = () => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        setUser(currentUser); 
+        setUser(currentUser);
       } else {
-        setUser(null); 
+        setUser(null);
       }
     });
 
-    return () => unsubscribe(); 
+    return () => unsubscribe();
   }, []);
 
   const handleChange = ({ target: { name, value } }) => {
@@ -77,9 +80,11 @@ const Post = () => {
       return;
     }
 
-    const jsonString = llamaResponse.replace(/([a-zA-Z0-9_]+):/g, '"$1":').replace(/'/g, '"');
+    const jsonString = llamaResponse
+      .replace(/([a-zA-Z0-9_]+):/g, '"$1":')
+      .replace(/'/g, '"');
     const llamaResponseJSON = JSON.parse(jsonString);
-    console.log(llamaResponseJSON)
+    console.log(llamaResponseJSON);
 
     const apiUrl = `http://127.0.0.1:8000/users/${user.email}/activities/`;
     const coinApiUrl = `http://127.0.0.1:8000/users/${user.email}/coins/`;
@@ -89,9 +94,9 @@ const Post = () => {
       details: {
         prompt: form.prompt,
         answer: form.content,
-        mood_answer: inputSentence || "", 
-        mood_rating: parseInt(llamaResponseJSON.valence * 10), 
-        songId: songSuggestion?.[0]?.id || "", 
+        mood_answer: inputSentence || "",
+        mood_rating: parseInt(llamaResponseJSON.valence * 10),
+        songId: songSuggestion?.[0]?.id || "",
       },
     };
 
@@ -120,6 +125,9 @@ const Post = () => {
 
       if (coinResponse.ok) {
         setCoins(updatedCoins); 
+        setTimeout(() => {
+          navigate("/");
+        }, 1000);
       }
       } else {
         showAlert({
@@ -151,10 +159,10 @@ const Post = () => {
   };
 
   return (
-    <section className='relative flex lg:flex-row flex-col max-container'>
+    <section className="relative flex lg:flex-row flex-col max-container">
       {alert.show && <Alert {...alert} />}
-      <div className='flex-1 min-w-[50%] flex flex-col'>
-        <h1 className='head-text'>Write Your Blog</h1>
+      <div className="flex-1 min-w-[50%] flex flex-col">
+        <h1 className="head-text">Write Your Blog</h1>
         {user ? (
           <p>Welcome, {user.email}</p>
         ) : (
@@ -164,26 +172,26 @@ const Post = () => {
         <form
           ref={formRef}
           onSubmit={handleSubmit}
-          className='w-full flex flex-col gap-7 mt-14'
+          className="w-full flex flex-col gap-7 mt-14"
         >
-          <label className='text-black-500 font-semibold'>
+          <label className="text-black-500 font-semibold">
             Prompt
             <textarea
-              name='prompt'
-              className='textarea'
-              rows='3'
+              name="prompt"
+              className="textarea"
+              rows="3"
               disabled
               value={form.prompt}
             />
           </label>
 
-          <label className='text-black-500 font-semibold'>
+          <label className="text-black-500 font-semibold">
             Content
             <textarea
-              name='content'
-              rows='8'
-              className='textarea'
-              placeholder='Write your thoughts here...'
+              name="content"
+              rows="8"
+              className="textarea"
+              placeholder="Write your thoughts here..."
               required
               value={form.content}
               onChange={handleChange}
@@ -193,9 +201,9 @@ const Post = () => {
           </label>
 
           <button
-            type='submit'
+            type="submit"
             disabled={loading || !user}
-            className='btn'
+            className="btn"
             onFocus={handleFocus}
             onBlur={handleBlur}
           >
@@ -204,7 +212,7 @@ const Post = () => {
         </form>
       </div>
 
-      <div className='lg:w-1/2 w-full lg:h-auto md:h-[550px] h-[350px]'>
+      <div className="lg:w-1/2 w-full lg:h-auto md:h-[550px] h-[350px]">
         <Canvas
           camera={{
             position: [0, 0, 5],

@@ -3,8 +3,8 @@ import { useState, useEffect, createContext } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase"; // Adjust the path to your firebase configuration
-import { Footer, Navbar } from "./components";
-import { Home, Register, Login, Post, Prompt } from "./pages";
+import { Footer, Navbar, ActivityDetail } from "./components";
+import { Home, Register, Login, Post, Prompt, History } from "./pages";
 import ProtectedRoute from "./components/ProtectedRoute"; // Adjust the path
 
 // Create a context for authentication
@@ -29,15 +29,15 @@ const App = () => {
 
   return (
     <AuthContext.Provider value={{ user, setUser }}>
-      <main className='bg-slate-300/20'>
+      <main className="bg-slate-300/20">
         <Router>
           <Navbar />
           <Routes>
-            <Route path='/' element={<Home />} />
-            <Route path='/login' element={<Login />} />
-            <Route path='/register' element={<Register />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route
-              path='/post'
+              path="/post"
               element={
                 <ProtectedRoute>
                   <Post />
@@ -45,10 +45,26 @@ const App = () => {
               }
             />
             <Route
-              path='/prompt'
+              path="/prompt"
               element={
                 <ProtectedRoute>
                   <Prompt />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/history"
+              element={
+                <ProtectedRoute>
+                  <History />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/activities/:date"
+              element={
+                <ProtectedRoute>
+                  <ActivityDetail />
                 </ProtectedRoute>
               }
             />
