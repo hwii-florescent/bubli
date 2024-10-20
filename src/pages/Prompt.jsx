@@ -102,23 +102,6 @@ const Prompt = () => {
         </form>
 
         {error && <p className="text-red-500">{error}</p>}
-
-        {/* Display the suggested song based on mood */}
-        {songSuggestion && (
-          <div style={{ marginTop: "20px" }}>
-            <h2>Spotify Song Suggestion</h2>
-            <div>
-              <iframe
-                src={`https://open.spotify.com/embed/track/${songSuggestion[0].id}`}
-                width="300"
-                height="80"
-                frameBorder="0"
-                allowtransparency="true"
-                allow="encrypted-media"
-              ></iframe>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="lg:w-1/2 w-full lg:h-auto md:h-[550px] h-[350px]">
