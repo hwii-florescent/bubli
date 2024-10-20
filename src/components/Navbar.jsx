@@ -3,25 +3,27 @@ import { useState, useEffect, useContext } from "react";
 import { NavLink } from "react-router-dom";
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth"; 
-import { AiOutlineHome } from "react-icons/ai";  // Home icon
-import { FaCoins } from "react-icons/fa"; // Coin icon (FaCoins from react-icons)
+import { AiOutlineHome } from "react-icons/ai"; 
+import { FaCoins } from "react-icons/fa"; 
 import { AuthContext } from "../App";
 
 const Navbar = () => {
   const {user, setUser} = useContext(AuthContext);
-  const [coins, setCoins] = useState(0);  // State to track coins
+  const [coins, setCoins] = useState(0); 
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser); 
 
       if (currentUser) {
-        getCoinsFromDatabase(user.email)
+        const updatedCoins = await getCoinsFromDatabase(currentUser.email);
+        setCoins(updatedCoins);  
       }
     });
 
-    return () => unsubscribe();
-  }, []);
+    return () => unsubscribe(); 
+  }, [auth]); 
+
 
   const getCoinsFromDatabase = async (userEmail) => {
     try {
@@ -30,9 +32,9 @@ const Navbar = () => {
       if (!response.ok) {
         throw new Error("Failed to fetch coin data.");
       }
-  
+
       const coins = await response.json(); 
-      return coins[0];  
+      return coins[0];
     } catch (error) {
       console.error("Error fetching coins:", error);
       return 0; 
@@ -43,7 +45,7 @@ const Navbar = () => {
     try {
       await signOut(auth);
       setUser(null);
-      setCoins(0);  // Reset coins on logout
+      setCoins(0); 
     } catch (error) {
       console.error("Logout failed:", error);
     }
