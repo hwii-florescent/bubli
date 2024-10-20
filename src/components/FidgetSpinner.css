@@ -1,0 +1,42 @@
+/* src/components/FidgetSpinner.css */
+.fidget-spinner {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    position: relative;
+    cursor: grab;
+  }
+  
+  .fidget-spinner .spinner-base {
+    width: 100%;
+    height: 100%;
+    background-color: #ff7675;
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  
+  .fidget-spinner .spinner-arm {
+    width: 20px;
+    height: 50px;
+    background-color: #ffeaa7;
+    border-radius: 10px;
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    transform-origin: bottom center;
+  }
+  
+  .fidget-spinner .spinner-arm:nth-child(2) {
+    transform: rotate(120deg);
+  }
+  
+  .fidget-spinner .spinner-arm:nth-child(3) {
+    transform: rotate(240deg);
+  }
+  
+  .fidget-spinner .spinner-arm:active {
+    cursor: grabbing;
+  }
+  
