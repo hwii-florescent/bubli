@@ -1,0 +1,109 @@
+/* src/components/SunshineBackground.css */
+
+.sunshine-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.sun {
+  animation: pulse 5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
+}
+
+.sun-ray {
+  transform-origin: 400px 100px;
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cloud {
+  transition: transform 0.2s ease-out;
+}
+
+.cloud:hover {
+  opacity: 0.8;
+}
+
+.balloon {
+  cursor: grab;
+}
+
+.balloon:active {
+  cursor: grabbing;
+}
+
+.bird {
+  animation: flap 1s steps(10) infinite;
+}
+
+@keyframes flap {
+  0% {
+    transform: translateY(0px) scale(1, 1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1, 0.9);
+  }
+  100% {
+    transform: translateY(0px) scale(1, 1);
+  }
+}
+
+.butterfly {
+  animation: flutter 2s ease-in-out infinite;
+}
+/* SunshineBackground.css */
+
+/* SunshineBackground.css */
+
+/* SunshineBackground.css */
+
+/* Sticky Notes */
+.sticky-note {
+  width: 200px;
+  height: 200px;
+  background-color: yellow;
+  padding: 20px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  position: absolute;
+  cursor: move;
+  z-index: 10;
+}
+
+/* Animal Images Container */
+.animal-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 50px;
+}
+
+.animal-container img {
+  cursor: pointer;
+}

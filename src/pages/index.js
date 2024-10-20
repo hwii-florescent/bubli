@@ -3,7 +3,9 @@ import Login from "./Login";
 import Post from "./Post"
 import Register from "./Register";
 import Prompt from "./Prompt";
+import FunUI from "./FunUI";
 import History from "./History";
+
 
 export {
     Home,
@@ -11,5 +13,6 @@ export {
     Post,
     Register,
     Prompt,
+    FunUI
     History
 }
