@@ -6,6 +6,7 @@ import { Alert, Loader } from "../components";
 import { auth } from "../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { apiUrl } from "../constant";
 
 const Register = () => {
   const formRef = useRef();
@@ -28,7 +29,7 @@ const Register = () => {
     setCurrentAnimation("hit");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/users/", {
+      const response = await fetch(apiUrl + "/users/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

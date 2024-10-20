@@ -6,6 +6,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { AiOutlineHome } from "react-icons/ai"; 
 import { FaCoins } from "react-icons/fa"; 
 import { AuthContext } from "../App";
+import { apiUrl } from "../constant";
 
 const Navbar = () => {
   const {user, setUser} = useContext(AuthContext);
@@ -28,7 +29,7 @@ const Navbar = () => {
 
   const getCurrentSong = async (userEmail) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/users/${userEmail}/activities`);
+      const response = await fetch(`${apiUrl}/users/${userEmail}/activities`);
       if (!response.ok) {
         throw new Error("Failed to fetch coin data.");
       }
@@ -44,7 +45,7 @@ const Navbar = () => {
 
   const getCoinsFromDatabase = async (userEmail) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/users/${userEmail}/coins/`);
+      const response = await fetch(`${apiUrl}/users/${userEmail}/coins/`);
       
       if (!response.ok) {
         throw new Error("Failed to fetch coin data.");
