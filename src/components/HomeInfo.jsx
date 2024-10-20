@@ -17,7 +17,7 @@ const HomeInfo = ({ currentStage }) => {
           How has your day been going? <br /> Are you excited for today's prompt?
         </p>
 
-        <Link to='/post' className='neo-brutalism-white neo-btn'>
+        <Link to='/prompt' className='neo-brutalism-white neo-btn'>
           Let's share
           <img src={arrow} alt='arrow' className='w-4 h-4 object-contain' />
         </Link>
@@ -47,7 +47,7 @@ const HomeInfo = ({ currentStage }) => {
         Need a project done or looking for a dev? <br/> I'm just a few keystrokes away
       </p>
 
-      <Link to='/contact' className='neo-brutalism-white neo-btn'>
+      <Link to='/prompt' className='neo-brutalism-white neo-btn'>
         Let's talk
         <img src={arrow} alt='arrow' className='w-4 h-4 object-contain' />
       </Link>

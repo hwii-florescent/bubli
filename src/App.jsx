@@ -1,7 +1,7 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
 import { Footer, Navbar } from "./components";
-import { Home, Register, Login, Post } from "./pages";
+import { Home, Register, Login, Post, Prompt } from "./pages";
 
 const App = () => {
   return (
@@ -18,6 +18,7 @@ const App = () => {
                   <Route path='/login' element={<Login />} />
                   <Route path='/register' element={<Register />} />
                   <Route path='/post' element={<Post />} />
+                  <Route path='/prompt' element={<Prompt />} />
                 </Routes>
                 <Footer />
               </>

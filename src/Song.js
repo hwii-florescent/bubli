@@ -2,8 +2,8 @@ import axios from "axios";
 
 // Export the function to be called in another file
 export const SpotifySongSuggestion = async (valence, tempo, energy) => {
-  const clientId = process.env.VITE_APP_SPOTIFY_CLIENT_ID;
-  const clientSecret = process.env.VITE_APP_SPOTIFY_CLIENT_SECRET; // Not recommended to use in frontend directly
+  const clientId = import.meta.env.VITE_APP_SPOTIFY_CLIENT_ID;
+  const clientSecret = import.meta.env.VITE_APP_SPOTIFY_CLIENT_SECRET; // Not recommended to use in frontend directly
 
   const getAccessToken = async () => {
     // Use btoa to encode the clientId and clientSecret into base64

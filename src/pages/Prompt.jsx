@@ -1,18 +1,19 @@
-import React, { useState } from "react";
-import { auth } from "./firebase";
+import React, { useState, useEffect } from "react";
+import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { queryLlama3 } from "./API call/mood_detect";
-import { SpotifySongSuggestion } from "./Song";
-import { useEffect } from "react";
+import { queryLlama3 } from "../API call/mood_detect";
+import { SpotifySongSuggestion } from "../Song";
+import Post from "./Post";
 
-export default function Home() {
+export default function Prompt() {
   const navigate = useNavigate();
   const [inputSentence, setInputSentence] = useState("");
   const [llamaResponse, setLlamaResponse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [songSuggestion, setSongSuggestion] = useState(null);
+
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
@@ -27,7 +28,6 @@ export default function Home() {
     }
   };
 
-  // Handle user logout
   const handleLogout = () => {
     signOut(auth)
       .then(() => {
@@ -41,7 +41,6 @@ export default function Home() {
   useEffect(() => {
     const suggestSong = async () => {
       if (llamaResponse) {
-        // Check if llamaResponse is not null or undefined
         try {
           const response = await SpotifySongSuggestion(
             llamaResponse.valence,
@@ -49,14 +48,13 @@ export default function Home() {
             llamaResponse.energy
           );
           setSongSuggestion(response);
-          console.log(response);
         } catch (err) {
           setError(err.message);
         }
       }
     };
 
-    suggestSong(); // Call the function whenever useEffect is triggered
+    suggestSong();
   }, [llamaResponse]);
 
   return (
@@ -67,13 +65,9 @@ export default function Home() {
           flexDirection: "column",
           alignItems: "center",
           padding: 20,
+          marginTop: "80px",  // Added top margin to prevent overlap with the navbar
         }}
       >
-        <h1>Welcome to the Home Page</h1>
-        {/* Logout Button */}
-        <button onClick={handleLogout} style={{ marginTop: "20px" }}>
-          Logout
-        </button>
         <div style={{ marginBottom: "10px" }}>
           <input
             type="text"
@@ -118,6 +112,7 @@ export default function Home() {
             <pre>{JSON.stringify(llamaResponse, null, 2)}</pre>
           </div>
         )}
+
         {songSuggestion && (
           <div style={{ marginTop: "20px" }}>
             <h2>Spotify Song Suggestion</h2>
@@ -133,6 +128,13 @@ export default function Home() {
                 allow="encrypted-media"
               ></iframe>
             </div>
+          </div>
+        )}
+
+        {/* Conditionally render the Post component if llamaResponse is available */}
+        {llamaResponse && (
+          <div style={{ marginTop: "30px", width: "100%" }}>
+            <Post llamaResponse={llamaResponse} />
           </div>
         )}
       </div>
