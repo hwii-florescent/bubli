@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useContext } from "react";
 import { NavLink } from "react-router-dom";
 import { auth } from "../firebase";
@@ -53,41 +54,43 @@ const Navbar = () => {
   };
 
   return (
-    <header className='header bg-white-500 shadow-lg py-4 px-6 w-full'>
-      {/* Home Icon */}
-      <NavLink to='/' className="text-black hover:text-blue-600 text-3xl">
-        <AiOutlineHome />
-      </NavLink>
-
-      {/* Coin Tracker Icon */}
-      <div className="flex items-center gap-2 text-xl text-white">
-        <FaCoins className="text-yellow-500" />
-        <span className="text-black">0</span>  {/* Display the number of coins */}
-      </div>
-
-      <nav className='flex gap-7 font-medium'>
-        {!user ? (
-          <>
-            <NavLink to='/login' className={({ isActive }) => (isActive ? "text-blue-600" : "text-black")}>
-              Login
-            </NavLink>
-            <NavLink to='/register' className={({ isActive }) => (isActive ? "text-blue-600" : "text-black")}>
-              Register
-            </NavLink>
-          </>
-        ) : (
-          <>
-            <span className="text-blue-600 font-medium">Welcome, {user.email}</span>
-            <button
-              onClick={handleLogout}
-              className='text-black font-medium hover:text-blue-600'
-            >
-              Logout
-            </button>
-          </>
-        )}
-      </nav>
-    </header>
+    <>
+      <header className='header bg-white-500 shadow-lg py-4 px-6 w-full mb-0'>
+        {/* Home Icon */}
+        <NavLink to='/' className="text-black hover:text-blue-600 text-3xl">
+          <AiOutlineHome />
+        </NavLink>
+  
+        {/* Coin Tracker Icon */}
+        <div className="flex items-center gap-2 text-xl text-white">
+          <FaCoins className="text-yellow-500" />
+          <span className="text-black">{coins}</span>  {/* Display the number of coins */}
+        </div>
+  
+        <nav className='flex gap-7 font-medium'>
+          {!user ? (
+            <>
+              <NavLink to='/login' className={({ isActive }) => (isActive ? "text-blue-600" : "text-black")}>
+                Login
+              </NavLink>
+              <NavLink to='/register' className={({ isActive }) => (isActive ? "text-blue-600" : "text-black")}>
+                Register
+              </NavLink>
+            </>
+          ) : (
+            <>
+              <span className="text-black font-medium">Welcome, {user.displayName || user.email}</span>
+              <button
+                onClick={handleLogout}
+                className='text-black font-medium hover:text-blue-600'
+              >
+                Logout
+              </button>
+            </>
+          )}
+        </nav>
+      </header>
+    </>
   );
 };
 
