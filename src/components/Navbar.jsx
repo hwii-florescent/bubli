@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { NavLink } from "react-router-dom";
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth"; 
 import { AiOutlineHome } from "react-icons/ai";  // Home icon
 import { FaCoins } from "react-icons/fa"; // Coin icon (FaCoins from react-icons)
+import { AuthContext } from "../App";
 
 const Navbar = () => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useContext(AuthContext);
   const [coins, setCoins] = useState(0);  // State to track coins
 
   useEffect(() => {
