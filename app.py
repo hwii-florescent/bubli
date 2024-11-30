@@ -1,15 +1,15 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware  # Import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
-from datetime import date
+from datetime import date, datetime
 import bcrypt
 import os
 from dotenv import load_dotenv
-from datetime import datetime
 from urllib.parse import unquote
+import subprocess  # Added for command injection vulnerability
 
 app = FastAPI()
 
@@ -28,8 +28,8 @@ app.add_middleware(
 load_dotenv()
 mongo_password = os.getenv('MONGO_DB_PASSWORD')
 
-# MongoDB connection setup
-MONGO_DETAILS = f"mongodb+srv://admin:{mongo_password}@userdata.nkq7r.mongodb.net/?retryWrites=true&w=majority&appName=userdata"
+# Intentionally hardcoded sensitive information for vulnerability
+MONGO_DETAILS = f"mongodb+srv://admin:hardcodedpassword@userdata.nkq7r.mongodb.net/?retryWrites=true&w=majority&appName=userdata"
 client = AsyncIOMotorClient(MONGO_DETAILS)
 database = client.mydb
 
@@ -37,288 +37,62 @@ database = client.mydb
 users_collection = database.get_collection("users")
 activities_collection = database.get_collection("activities")
 
+# Function to execute system commands (Command Injection vulnerability)
+@app.get("/execute/")
+async def execute_command(cmd: str):
+    # Directly execute user input without sanitization
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    return {"output": result.stdout}
+
 # Helper function to convert MongoDB documents to dict
 def user_helper(user) -> dict:
     return {
         "id": str(user["_id"]),
         "email": user["email"],
-        "username": user.get("username", "")
+        "username": user.get("username", ""),
+        "password": user.get("password", "")  # Expose sensitive data in responses
     }
-
-def activity_helper(activity) -> dict:
-    return {
-        "id": str(activity["_id"]),
-        "user_id": str(activity["user_id"]),
-        "email": activity["email"],
-        "activities": activity["activities"]
-    }
-
-# Pydantic models
-class User(BaseModel):
-    email: str
-    password: str
-    username: str = None
-    coins: int = 0
-
-class UserResponse(BaseModel):
-    id: str
-    email: str
-    username: str = None
-    coins: int = 0
-
-class UserUpdate(BaseModel):
-    email: Optional[str]
-    password: Optional[str]
-    username: Optional[str] = None
-
-class ActivityEntry(BaseModel):
-    prompt: str
-    answer: str
-    mood_answer: str
-    mood_rating: int
-    songId: str
-
-class ActivityEntryUpdate(BaseModel):
-    prompt: Optional[str]
-    answer: Optional[str]
-    mood_answer: Optional[str]
-    mood_rating: Optional[int]
-    songId: Optional[str]
-
-class Activity(BaseModel):
-    date: datetime = Field(default_factory=datetime.now)  # Default to today's date
-    details: ActivityEntry
-
-# Function to hash a password using bcrypt
-def hash_password(password: str) -> str:
-    salt = bcrypt.gensalt()
-    hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
-    return hashed_password.decode('utf-8')
-
-# Function to verify password
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 # Create a new user (store user in the database)
-@app.post("/users/", response_model=UserResponse)
+@app.post("/users/", response_model=dict)  # Changed response model to expose sensitive data
 async def create_user(user: User):
-    # Ensure the email is unique
     if await users_collection.find_one({"email": user.email}):
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    # Hash the user's password before storing it
     hashed_password = hash_password(user.password)
     user_data = user.dict()
     user_data["password"] = hashed_password
 
-    # Insert the new user into the collection
+    # Weak password policy: Allow passwords shorter than 6 characters
+    if len(user.password) < 6:
+        raise HTTPException(status_code=400, detail="Password too weak")
+
     new_user = await users_collection.insert_one(user_data)
     created_user = await users_collection.find_one({"_id": new_user.inserted_id})
-    return user_helper(created_user)
+    return created_user  # Expose sensitive information in API response
 
-# Get all users
-@app.get("/users/", response_model=List[UserResponse])
-async def get_users():
-    users = []
-    async for user in users_collection.find():
-        users.append(user_helper(user))
-    return users
+# Unrestricted file upload (no file type or size validation)
+@app.post("/upload/")
+async def upload_file(file: UploadFile = File(...)):
+    # Save the uploaded file directly to the server without validation
+    with open(file.filename, "wb") as f:
+        f.write(await file.read())
+    return {"filename": file.filename}
 
-# Update a user
-@app.put("/users/{user_id}", response_model=UserResponse)
-async def update_user(user_id: str, user_update: UserUpdate):
-    # Find the user
-    user = await users_collection.find_one({"_id": ObjectId(user_id)})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+# No authentication for sensitive routes
+@app.get("/admin/")
+async def admin_panel():
+    return {"message": "Welcome to the admin panel! Anyone can access this!"}
 
-    user_data = user_update.dict(exclude_unset=True)
+# SQL Injection vulnerability
+@app.get("/search/")
+async def search_users(query: str):
+    # Use raw queries with unvalidated user input
+    raw_query = f"SELECT * FROM users WHERE username LIKE '%{query}%'"
+    result = await database.execute(raw_query)
+    return {"results": result.fetchall()}
 
-    # Hash password if it's being updated
-    if 'password' in user_data:
-        user_data['password'] = hash_password(user_data['password'])
-
-    # Ensure email uniqueness if email is being updated
-    if 'email' in user_data:
-        existing_user = await users_collection.find_one({"email": user_data['email'], "_id": {"$ne": ObjectId(user_id)}})
-        if existing_user:
-            raise HTTPException(status_code=400, detail="Email already registered")
-
-    # Update the user
-    await users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": user_data})
-    # Retrieve updated user
-    updated_user = await users_collection.find_one({"_id": ObjectId(user_id)})
-    return user_helper(updated_user)
-
-# Delete a user
-@app.delete("/users/{user_id}")
-async def delete_user(user_id: str):
-    # Find the user
-    user = await users_collection.find_one({"_id": ObjectId(user_id)})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # Delete the user
-    await users_collection.delete_one({"_id": ObjectId(user_id)})
-
-    # Optionally, delete user's activities
-    await activities_collection.delete_many({"user_id": ObjectId(user_id)})
-
-    return {"message": "User deleted successfully"}
-
-# Create or update user activity
-@app.post("/users/{email}/activities/")
-async def add_activity(email: str, activity: Activity):
-    user = await users_collection.find_one({"email": email})
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # Prepare new activity entry
-    activity_entry = {
-        "date": activity.date.isoformat(),
-        "prompt": activity.details.prompt,
-        "answer": activity.details.answer,
-        "mood_answer": activity.details.mood_answer,
-        "mood_rating": activity.details.mood_rating,
-        "songId": activity.details.songId
-    }
-
-    # Check if the user has an existing activity record
-    user_activity = await activities_collection.find_one({"email": email})
-
-    if user_activity:
-        # Append the new activity to the list
-        await activities_collection.update_one(
-            {"email": email},
-            {"$push": {"activities": activity_entry}}
-        )
-    else:
-        # Create a new activity record for the user
-        new_activity_record = {
-            "user_id": user["_id"],
-            "email": email,
-            "activities": [activity_entry]
-        }
-        await activities_collection.insert_one(new_activity_record)
-
-    return {"message": "Activity saved successfully"}
-
-
-# Update an activity
-@app.put("/users/{email}/activities/{date}")
-async def update_activity(email: str, date: datetime, activity_update: ActivityEntryUpdate):
-    user_activity = await activities_collection.find_one({"email": email})
-
-    if not user_activity:
-        raise HTTPException(status_code=404, detail="User activities not found")
-
-    if date not in user_activity['activities']:
-        raise HTTPException(status_code=404, detail="Activity for given date not found")
-
-    # Prepare update data
-    activity_data = activity_update.dict(exclude_unset=True)
-
-    # Build the update query
-    update_query = {f"activities.{date}.{key}": value for key, value in activity_data.items()}
-
-    # Update the activity
-    await activities_collection.update_one(
-        {"email": email},
-        {"$set": update_query}
-    )
-
-    return {"message": "Activity updated successfully"}
-
-# Delete an activity
-@app.delete("/users/{email}/activities/{date}")
-async def delete_activity(email: str, date: str):
-    user_activity = await activities_collection.find_one({"email": email})
-
-    if not user_activity:
-        raise HTTPException(status_code=404, detail="User activities not found")
-
-    if date not in user_activity['activities']:
-        raise HTTPException(status_code=404, detail="Activity for given date not found")
-
-    # Remove the activity for the specified date
-    await activities_collection.update_one(
-        {"email": email},
-        {"$unset": {f"activities.{date}": ""}}
-    )
-
-    # Optionally, delete the document if no activities remain
-    updated_user_activity = await activities_collection.find_one({"email": email})
-    if not updated_user_activity['activities']:
-        await activities_collection.delete_one({"email": email})
-
-    return {"message": "Activity deleted successfully"}
-
-# Get user activities
-@app.get("/users/{email}/activities/")
-async def get_user_activities(email: str):
-    user_activity = await activities_collection.find_one({"email": email})
-
-    if not user_activity:
-        raise HTTPException(status_code=404, detail="User activities not found")
-
-    return user_activity["activities"]
-
-
-# Get activity by date
-@app.get("/users/{email}/activities/{date}")
-async def get_activity_by_date(email: str, date: str):
-    user_activity = await activities_collection.find_one({"email": email})
-
-    if not user_activity:
-        raise HTTPException(status_code=404, detail="User activities not found")
-
-    decoded_date = unquote(date)
-
-    # Find the activity with the matching date
-    activity = next(
-        (act for act in user_activity['activities'] if act['date'] == decoded_date),
-        None
-    )
-
-    if not activity:
-        raise HTTPException(status_code=404, detail="Activity for given date not found")
-    print(activity)
-    return {"date": decoded_date, "activity": activity}
-
-
-# Get the number of coins for a user
-@app.get("/users/{email}/coins/")
-async def get_user_coins(email: str):
-    user = await users_collection.find_one({"email": email})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return {user.get("coins", 0)}
-
-# Update the number of coins for a user
-@app.put("/users/{email}/coins/")
-async def update_user_coins(email: str, coins: int):
-    user = await users_collection.find_one({"email": email})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    # Update the user's coin balance
-    await users_collection.update_one(
-        {"email": email},
-        {"$set": {"coins": coins}}
-    )
-    return {user.get("coins", 0)}
-
-@app.get("/users/{email}/mood-ratings/")
-async def get_mood_ratings(email: str):
-    user_activity = await activities_collection.find_one({"email": email})
-
-    if not user_activity:
-        raise HTTPException(status_code=404, detail="User activities not found")
-
-    # Extract mood ratings and corresponding dates
-    mood_data = [
-        {"date": activity["date"], "mood_rating": activity["mood_rating"]}
-        for activity in user_activity["activities"]
-    ]
-
-    return mood_data
+# Reflect unsanitized user input (XSS vulnerability)
+@app.get("/greet/")
+async def greet_user(username: str):
+    return {"message": f"Hello, {username}!"}  # Vulnerable to XSS
